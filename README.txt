@@ -2,6 +2,8 @@ JBoss Autopwn Script
 Christian G. Papathanasiou
 http://www.spiderlabs.com
 
+# Updated to use msfconsole and msfvenom by Darkerego, as msfcli and msfpayload are deprecated
+
 INTRODUCTION
 ============
 
